@@ -1,0 +1,22 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Opening…</title>
+<script>
+const LINKS = {
+  "001": "https://www.instagram.com/ar_studio_main",
+  "002": "https://maps.app.goo.gl/YvaLfzwVvUYohGVf9",
+  "003": ""
+};
+const id = new URLSearchParams(location.search).get("c");
+const url = LINKS[id];
+if (url && /^https:\/\//.test(url)) location.replace(url);
+</script>
+<style>body{font:18px system-ui;text-align:center;padding:40px}</style>
+</head>
+<body>
+<p>This card is not active yet.</p>
+</body>
+</html>
