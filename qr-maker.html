@@ -1,0 +1,121 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Numbered QR maker</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/qrcode-generator/1.4.4/qrcode.min.js"></script>
+<style>
+:root{--bg:#f6f7fb;--ink:#14213d;--mut:#5b6478;--line:#d9dde8;--acc:#1a56db;--card:#fff}
+@media (prefers-color-scheme:dark){:root{--bg:#10131a;--ink:#eef1f8;--mut:#9aa3b8;--line:#2a3040;--acc:#6ea0ff;--card:#181c26}}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.45 system-ui,sans-serif;padding:16px}
+h1{font-size:1.3rem;margin:0 0 4px}
+p.sub{margin:0 0 16px;color:var(--mut);font-size:.92rem}
+.ctl{display:grid;gap:10px;background:var(--card);border:1px solid var(--line);border-radius:12px;padding:14px;margin-bottom:16px}
+label{display:grid;gap:4px;font-size:.88rem;color:var(--mut)}
+input{font:inherit;padding:10px;border:1px solid var(--line);border-radius:8px;background:var(--bg);color:var(--ink);width:100%}
+.row{display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px}
+.btns{display:flex;gap:10px;flex-wrap:wrap}
+button{font:inherit;font-weight:600;padding:11px 16px;border:0;border-radius:8px;background:var(--acc);color:#fff;cursor:pointer}
+button.alt{background:transparent;color:var(--acc);border:1px solid var(--acc)}
+button:focus-visible,input:focus-visible{outline:3px solid var(--acc);outline-offset:2px}
+#grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(140px,1fr));gap:12px}
+.cell{background:#fff;color:#000;border:1px solid var(--line);border-radius:10px;padding:10px;text-align:center}
+.cell canvas{width:var(--qr,2.5cm);height:var(--qr,2.5cm);max-width:100%;image-rendering:pixelated;cursor:pointer}
+.cell b{display:block;margin-top:4px;font-size:1rem}
+.cell small{display:block;color:#555;font-size:.7rem;word-break:break-all}
+.hint{font-size:.85rem;color:var(--mut);margin:0 0 12px}
+#err{color:#c0392b;font-weight:600}
+@media print{
+  body{background:#fff;padding:0}
+  h1,.sub,.ctl,.hint{display:none}
+  #grid{grid-template-columns:repeat(4,1fr);gap:8px}
+  .cell{border:1px dashed #999;break-inside:avoid}
+  .cell small{display:none}
+}
+</style>
+</head>
+<body>
+<h1>Numbered QR maker</h1>
+<p class="sub">Each QR opens your redirect page with a card number. Change a client's link later without reprinting.</p>
+
+<div class="ctl">
+  <label>Redirect page link
+    <input id="base" value="https://himmatpreetsingh130-hub.github.io/r/" inputmode="url">
+  </label>
+  <div class="row">
+    <label>Start no.<input id="start" type="number" min="1" value="1"></label>
+    <label>How many<input id="count" type="number" min="1" max="60" value="8"></label>
+    <label>QR size (cm)<input id="size" type="number" min="1.5" max="6" step="0.5" value="2.5"></label>
+  </div>
+  <div class="btns">
+    <button id="go">Make QR codes</button>
+    <button class="alt" id="print">Print sheet</button>
+  </div>
+  <div id="err"></div>
+</div>
+
+<p class="hint">Tap any QR to save it as a PNG. Scan each one with another phone before printing.</p>
+<div id="grid"></div>
+
+<script>
+const $ = id => document.getElementById(id);
+const pad = n => String(n).padStart(3, "0");
+
+function draw(text){
+  const qr = qrcode(0, "M");
+  qr.addData(text);
+  qr.make();
+  const n = qr.getModuleCount(), cell = 10, margin = 4;
+  const size = (n + margin * 2) * cell;
+  const c = document.createElement("canvas");
+  c.width = c.height = size;
+  const x = c.getContext("2d");
+  x.fillStyle = "#fff"; x.fillRect(0, 0, size, size);
+  x.fillStyle = "#000";
+  for (let r = 0; r < n; r++)
+    for (let k = 0; k < n; k++)
+      if (qr.isDark(r, k)) x.fillRect((k + margin) * cell, (r + margin) * cell, cell, cell);
+  return c;
+}
+
+function make(){
+  $("err").textContent = "";
+  if (typeof qrcode === "undefined"){
+    $("err").textContent = "QR library did not load. Check your internet and reload.";
+    return;
+  }
+  let base = $("base").value.trim();
+  if (!/^https?:\/\//.test(base)){ $("err").textContent = "Link must start with https://"; return; }
+  if (!base.endsWith("/")) base += "/";
+  const start = Math.max(1, parseInt($("start").value) || 1);
+  const count = Math.min(60, Math.max(1, parseInt($("count").value) || 1));
+  document.documentElement.style.setProperty("--qr", ($("size").value || 2.5) + "cm");
+  const grid = $("grid");
+  grid.innerHTML = "";
+  for (let i = 0; i < count; i++){
+    const id = pad(start + i);
+    const url = base + "?c=" + id;
+    const c = draw(url);
+    c.title = "Tap to save";
+    c.onclick = () => {
+      const a = document.createElement("a");
+      a.href = c.toDataURL("image/png");
+      a.download = "qr-" + id + ".png";
+      a.click();
+    };
+    const d = document.createElement("div");
+    d.className = "cell";
+    d.append(c);
+    d.insertAdjacentHTML("beforeend", "<b>" + id + "</b><small>" + url + "</small>");
+    grid.append(d);
+  }
+}
+
+$("go").onclick = make;
+$("print").onclick = () => { if (!$("grid").children.length) make(); window.print(); };
+window.addEventListener("load", make);
+</script>
+</body>
+</html>
