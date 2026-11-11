@@ -1,0 +1,34 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Opening review page…</title>
+<style>
+body{margin:0;display:grid;place-items:center;min-height:100vh;font:18px system-ui,sans-serif;background:#f6f7fb;color:#14213d;text-align:center;padding:20px}
+@media (prefers-color-scheme:dark){body{background:#10131a;color:#eef1f8}}
+a{color:#1a56db}
+</style>
+</head>
+<body>
+<p id="msg">Opening review page…</p>
+<script>
+(async () => {
+  const id = new URLSearchParams(location.search).get("c");
+  const msg = document.getElementById("msg");
+  try {
+    const res = await fetch("links.json", { cache: "no-store" });
+    const data = await res.json();
+    const url = data[id];
+    if (url && /^https:\/\//.test(url)) {
+      location.replace(url);
+    } else {
+      msg.textContent = "This card is not active yet.";
+    }
+  } catch (e) {
+    msg.textContent = "Could not load. Please check your internet and try again.";
+  }
+})();
+</script>
+</body>
+</html>
