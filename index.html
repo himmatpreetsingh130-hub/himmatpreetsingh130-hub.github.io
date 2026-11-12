@@ -3,20 +3,35 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Opening…</title>
+<title>Review card</title>
 <script>
 const LINKS = {
   "001": "https://www.instagram.com/ar_studio_main",
-  "002": "https://maps.app.goo.gl/YvaLfzwVvUYohGVf9",
+  "002": "",
   "003": ""
 };
 const id = new URLSearchParams(location.search).get("c");
 const url = LINKS[id];
 if (url && /^https:\/\//.test(url)) location.replace(url);
 </script>
-<style>body{font:18px system-ui;text-align:center;padding:40px}</style>
+<style>
+body{margin:0;min-height:100vh;display:grid;place-items:center;text-align:center;font-family:system-ui,sans-serif;background:#f6f7fb;color:#14213d}
+@media (prefers-color-scheme:dark){body{background:#10131a;color:#eef1f8}}
+.n{font-size:72px;font-weight:800;letter-spacing:4px}
+.s{font-size:18px;opacity:.7}
+</style>
 </head>
 <body>
-<p>This card is not active yet.</p>
+<div>
+  <div class="s">Card number</div>
+  <div class="n" id="n">-</div>
+  <div class="s" id="m"></div>
+</div>
+<script>
+document.getElementById("n").textContent = id || "none";
+document.getElementById("m").textContent = id
+  ? "This card is not active yet"
+  : "No card number in the link";
+</script>
 </body>
 </html>
